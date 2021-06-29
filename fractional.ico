@@ -1,0 +1,605 @@
+#define DEBUG 1
+
+///////
+// 文字列で表現した非負整数のBCD計算
+///////
+
+#define VAL(a) ((a) - '0')
+
+// 先行する 0 を除去する
+String iNorm(String a) {
+  while(a.length() > 1) {
+    if(a.charAt(0) != '0') {
+      break;
+    }
+    a = a.substring(1);
+  }
+  return a;
+}
+
+// 値の大小比較
+int iComp(String a, String b) {
+  a = iNorm(a);
+  b = iNorm(b);
+  int sub = a.length() - b.length();
+  if(sub)
+    return sub;
+  return a.compareTo(b);
+}
+
+// 非負の整数の和を計算
+String iAdd(String a, String b) {
+  int len = a.length() - b.length();
+  int i, sum, carry = 0;
+  String c = "";
+  
+  if(len > 0) { // 文字列の長さを揃える
+    for(i = 0; i < len; i++) {
+      b = "0" + b;
+    }
+  }
+  else if(len < 0) {
+    for(i = 0; i < -len; i++) {
+      a = "0" + a;
+    }
+  }
+  len = a.length();
+  for(i = len-1; i >= 0; i--) {
+    int sum = VAL(a.charAt(i)) + VAL(b.charAt(i)) + carry;
+    if(sum > 9) {
+      sum -= 10;
+      carry = 1; // 繰り上がり
+    }
+    else {
+      carry = 0;
+    }
+    c = String(sum) + c;
+  }
+  if(carry)
+    c = "1" + c;
+  return iNorm(c);
+}
+
+// 差の計算 a >= b でなければならない
+String iSub(String a, String b) {
+  int len = a.length() - b.length();
+  int i, sub, borrow = 0;
+  String c = "";
+  
+  if(len > 0) { // 文字列の長さを揃える
+    for(i = 0; i < len; i++) {
+      b = "0" + b;
+    }
+  }
+  else if(len < 0) {
+    for(i = 0; i < -len; i++) {
+      a = "0" + a;
+    }
+  }
+  len = a.length();
+  for(i = len-1; i >= 0; i--) {
+    int sub = VAL(a.charAt(i)) - VAL(b.charAt(i)) - borrow;
+    if(sub < 0) {
+      sub += 10;
+      borrow = 1; // 繰り下がり
+    }
+    else {
+      borrow = 0;
+    }
+    c = String(sub) + c;
+  }
+  return iNorm(c);
+}
+
+// 積の計算
+String iMul(String a, String b) {
+  String c, amul;
+  int i, j;
+
+  c = "0";
+  amul = a;
+  for(j = b.length() - 1; j >= 0; j--) {
+    for(i = 0; i < VAL(b.charAt(j)); i++) {
+      c = iAdd(c, amul);
+    }
+    amul = amul + "0"; // 左シフト
+  }
+  return iNorm(c);
+}
+
+// 整数の除算
+String rem; // 剰余を格納
+String iDiv(String a, String b) {
+  String mult;
+  String x, ans = "0";
+  int i, j;
+
+  if(iComp(b, "0") == 0) {
+    return "0";
+  }
+  x = b;
+  for(i = 0; ; i++) {
+    x = iMul(x, "10");
+    if(iComp(a, x) < 0) {
+      break;
+    }
+  }
+  for(; i >= 0; i--) {
+    mult = "1";
+    for(j = 0; j < i; j++) {
+      mult = iMul(mult, "10");
+    }
+    x = iMul(b, mult);
+    for(j = 0; j < 10; j++) {
+      if(iComp(a, x) >= 0) {
+        a = iSub(a, x);
+        ans = iAdd(ans, mult);
+      }
+      else {
+        break;
+      }
+    }
+  }
+  rem = iNorm(a);
+  return iNorm(ans);
+}
+
+// 剰余を読み出す関数 iDiv の実行後似呼び出し
+String iRem() {
+  return rem;
+}
+
+// 最大公約数の計算（互除法） a, b は 0 不可
+String iGCD(String a, String b) {
+  String c, r;
+  
+  if(iComp(a, b) < 0) {
+    c = b;
+    b = a;
+    a = c;
+  }
+  for(;;) {
+    iDiv(a, b);
+    r = iRem();
+    if(iComp(r, "0") == 0) {
+      return b;
+    }
+    a = b;
+    b = r;
+  }
+}
+ 
+///////
+// 分数計算部
+///////
+
+// 分数の構造体定義　分母分子の非負整数と符号で構成
+struct FRAC {
+  String u, b;
+  int sign;
+};
+
+// 小数を表す文字列を分数に変換
+struct FRAC str2FRAC(String s) {
+  struct FRAC a;
+  int ptPos, mul, i;
+   
+  a.sign = 1;
+  if(s.charAt(0) == '-') {
+    a.sign = -1;
+    s = s.substring(1);
+  }
+  ptPos = s.indexOf(".");
+  if(ptPos >= 0) {
+    int mul = s.length() - ptPos - 1;
+    a.u = s.substring(0, ptPos) + s.substring(ptPos + 1);
+    a.b = "1";
+    for(i = 0; i < mul; i++) {
+      a.b = a.b + "0";
+    }
+  }
+  else {
+    a.u = s;
+    a.b = "1";
+  }
+  return a;
+}
+
+// 符号の反転
+struct FRAC fSign(struct FRAC a) {
+  a.sign = -a.sign;
+  return a;
+}
+
+// 約分
+struct FRAC fReduce(struct FRAC a) {
+  String gcd;
+
+  if(iComp(a.u, "0") == 0 || iComp(a.b, "0") == 0) {
+    return a;
+  }
+  gcd = iGCD(a.u, a.b);
+  a.u = iDiv(a.u, gcd);
+  a.b = iDiv(a.b, gcd);
+  return a;
+}
+
+// 和
+struct FRAC fAdd(struct FRAC a, struct FRAC b) {
+  struct FRAC c;
+
+  c.b = iMul(a.b, b.b);
+  a.u = iMul(a.u, b.b);
+  b.u = iMul(b.u, a.b);
+  if(a.sign == b.sign) {
+    c.u = iAdd(a.u, b.u);
+    c.sign = a.sign;
+  }
+  else {
+    if(iComp(a.u, b.u) > 0) {
+      c.u = iSub(a.u, b.u);
+      c.sign = a.sign;
+    }
+    else {
+      c.u = iSub(b.u, a.u);
+      c.sign = b.sign;
+    }
+  }
+  return fReduce(c);
+}
+
+// 差
+struct FRAC fSub(struct FRAC a, struct FRAC b) {
+  return fReduce(fAdd(a, fSign(b)));
+}
+
+// 積
+struct FRAC fMul(struct FRAC a, struct FRAC b) {
+  struct FRAC c;
+
+  c.sign = a.sign * b.sign;
+  c.u = iMul(a.u, b.u);
+  c.b = iMul(a.b, b.b);
+  return fReduce(c);
+}
+
+// 商
+struct FRAC fDiv(struct FRAC a, struct FRAC b) {
+  struct FRAC c;
+
+  c.sign = a.sign * b.sign;
+  c.u = iMul(a.u, b.b);
+  c.b = iMul(a.b, b.u);
+  if(iComp(c.b, "0") == 0) {
+    c.u = "0"; // NaN
+  }
+  return fReduce(c);
+}
+
+// 分数から float の値を求める
+float fNum(struct FRAC a) {
+  float u = 0, b = 0;
+  int i;
+
+  for(i = 0; i < a.u.length(); i++) {
+    u = u * 10.0 + VAL(a.u.charAt(i));
+  }
+  for(i = 0; i < a.b.length(); i++) {
+    b = b * 10.0 + VAL(a.b.charAt(i));
+  }
+  u /= b;
+  u *= a.sign;
+  return u;
+}
+
+///// 分数ライブラリ終わり
+
+// RPN電卓プログラム
+#include "U8glib.h"
+U8GLIB_SSD1306_128X32 u8g(U8G_I2C_OPT_NONE); // Just for 0.91”(128*32)
+
+#define STACK_DEPTH 8
+struct FRAC stack[STACK_DEPTH];
+
+void push(struct FRAC val) {
+  for(int i = STACK_DEPTH-1; i > 0; i--) {
+    stack[i] = stack[i-1];
+  }
+  stack[0] = val;
+}
+
+struct FRAC pop(void) {
+  int i;
+  struct FRAC val;
+
+  val = stack[0];
+  for(int i = 0; i < STACK_DEPTH-1; i++) {
+    stack[i] = stack[i+1];
+  }
+  // スタックの底から 0 が出てくる方式
+  stack[STACK_DEPTH-1] = str2FRAC("0");
+  return val;
+}
+
+void initStack(void) {
+  for(int i = 0; i < STACK_DEPTH; i++) {
+    stack[i] = str2FRAC("0");
+  }
+}
+
+void setup(void) {
+  // u8g.setRot180(); // 表示素子を逆につけたとき
+  
+  u8g.setColorIndex(1);
+  u8g.setFont(u8g_font_9x15r);
+
+  pinMode(2, OUTPUT);
+  pinMode(3, OUTPUT);
+  pinMode(4, OUTPUT);
+  pinMode(5, OUTPUT);
+  pinMode(6, OUTPUT);
+  digitalWrite(2, LOW);
+  digitalWrite(3, LOW);
+  digitalWrite(4, LOW);
+  digitalWrite(5, LOW);
+  digitalWrite(6, LOW);
+  initStack();
+  disp();
+#if DEBUG
+  Serial.begin( 9600 );
+  Serial.println( "Start" );
+#endif
+}
+
+#define THRES 500
+#define DELAY 2
+char keycheck(void) {
+  digitalWrite(2, LOW);
+  digitalWrite(3, LOW);
+  digitalWrite(4, LOW);
+  digitalWrite(5, LOW);
+  digitalWrite(6, LOW);
+  digitalWrite(2, HIGH);
+  delay(DELAY);
+  if(analogRead(A1) > THRES) return '1';
+  if(analogRead(A2) > THRES) return '4';
+  if(analogRead(A3) > THRES) return '8';
+  if(analogRead(A6) > THRES) return 'M'; //M+
+  if(analogRead(A7) > THRES) return 'm'; //M-
+  digitalWrite(2, LOW);
+  digitalWrite(3, HIGH);
+  delay(DELAY);
+  if(analogRead(A1) > THRES) return '2';
+  if(analogRead(A2) > THRES) return '5';
+  if(analogRead(A3) > THRES) return '9';
+  if(analogRead(A6) > THRES) return '/';
+  if(analogRead(A7) > THRES) return 'E'; //CE
+  digitalWrite(3, LOW);
+  digitalWrite(4, HIGH);
+  delay(DELAY);
+  if(analogRead(A1) > THRES) return '3';
+  if(analogRead(A2) > THRES) return '6';
+  if(analogRead(A3) > THRES) return '-';
+  if(analogRead(A6) > THRES) return '*';
+  if(analogRead(A7) > THRES) return '+';
+  digitalWrite(4, LOW);
+  digitalWrite(5, HIGH);
+  delay(DELAY);
+  if(analogRead(A1) > THRES) return '0';
+  if(analogRead(A2) > THRES) return 'R'; //MRC
+  if(analogRead(A3) > THRES) return '7';
+  if(analogRead(A6) > THRES) return '=';
+  if(analogRead(A7) > THRES) return '%';
+  digitalWrite(5, LOW);
+  digitalWrite(6, HIGH);
+  delay(DELAY);
+  if(analogRead(A1) > THRES) return 'S'; //平方根
+  if(analogRead(A2) > THRES) return '.';
+  if(analogRead(A6) > THRES) return 'C'; // +/- 符号反転
+  digitalWrite(6, LOW);
+  return 0;
+}
+
+void waitRelease(void) { // キーを離すまで待つ
+  while(keycheck());
+}
+
+void disp(void) {
+  u8g.firstPage();  
+  do {
+    draw();
+  } while(u8g.nextPage());
+}
+
+// キー入力をつなげて文字列にする
+int entering = false;
+int point = false;
+String ent;
+void addNum(char key) {
+  if(!entering) {
+    ent = "";
+    entering = true;
+  }
+  if(key == '.') {
+    if(point) return; // 小数点は１個まで
+    point = true;
+  }
+  ent = ent + String(key);
+}
+
+// 入力文字を確定してスタックに入れる
+void enter(void) {
+  if(entering) {
+    entering = false;
+    point = false;
+    push(str2FRAC(ent));
+    ent = "";
+  }
+}
+
+// 分数の表示用文字列生成関数　14桁に収めて表示
+#define DIGIT_LIM 14
+String FRAC2fstr(struct FRAC a) {
+  int lim = DIGIT_LIM;
+  int reduce = false;
+  String s = "";
+
+  if(iComp(a.b, "0") == 0) { // 分母が 0 は NaN と表示
+    return "NaN";
+  }
+  if(a.sign == -1) {
+    lim--; // 負号 '-' のスペース
+  }
+if(iComp(a.b, "1") != 0) { // 分母の文字列生成
+    int blimit = max(6, lim - 1 - (int)a.u.length()); // 最低 6 文字確保
+    if(blimit < a.b.length()) { // 分母の桁数制限を行う
+      blimit -= 2; // "En" のスペース
+      if((int)a.b.length() - 9 > blimit) // ...E10 みたいに２桁になる
+        blimit --;
+      s = "/" + a.b.substring(0, blimit);
+      s += "E" + String(a.b.length() - blimit);
+    }
+    else {
+      s += "/" + a.b;
+    }
+  }
+  lim -= s.length(); // 分子の桁数
+  if(lim < a.u.length()) { // 分子の桁数制限を行う
+    lim -= 2; // "En" のスペース
+    if((int)a.u.length() - 9 > lim) // ...E10 みたいに２桁になる
+      lim --;
+    s = a.u.substring(0, lim) + "E" + String(a.u.length() - lim) + s;
+  }
+  else {
+    s = a.u + s;
+  }
+  if(a.sign < 0) { // 負号をつける
+    s = "-" + s;
+  }
+  return s;
+}
+
+// 小数の表示用文字列生成関数　14桁に収めて表示
+String FRAC2dstr(struct FRAC a) {
+  char buf[20];
+
+  if(iComp(a.b, "0") == 0) {
+    return "NaN";
+  }
+  dtostrf(fNum(a), 12, 5, buf);
+  return buf;
+}
+
+int fracmode = true; // 分数表示モード
+String FRAC2str(struct FRAC a) {
+  if(fracmode) {
+      return FRAC2fstr(a);
+  }
+  else {
+      return FRAC2dstr(a);
+  }
+}
+
+// 数値表示
+void draw(void) {
+  String s;
+  
+  if(entering) { // 数値の入力中
+    s = ent;
+    if(s.length() > DIGIT_LIM) { // 長過ぎるとき，文字の上位桁を省略表示
+      s = ".." + s.substring((int)s.length() - DIGIT_LIM + 2);
+    }
+    u8g.setPrintPos(0, 31);
+    u8g.print(s);
+    s = FRAC2str(stack[0]);
+    u8g.setPrintPos(128 - s.length() * 9, 15);
+    u8g.print(s);
+  }
+  else {  
+    s = FRAC2str(stack[1]);
+    u8g.setPrintPos(128 - s.length() * 9, 15);
+    u8g.print(s);
+    s = FRAC2str(stack[0]);
+    u8g.setPrintPos(128 - s.length() * 9, 31);
+    u8g.print(s);
+  }
+}
+
+void loop(void) {
+  struct FRAC a;
+  char key = keycheck();
+  if(!key)
+    return;
+  switch(key) {
+  case '0':  
+  case '1':  
+  case '2':  
+  case '3':  
+  case '4':  
+  case '5':  
+  case '6':  
+  case '7':  
+  case '8':  
+  case '9':  
+  case '.':
+    addNum(key); // 新しい数値入力
+    break;
+  case 'E': // 確定してDROP
+    enter();
+    pop();
+    break;
+  case '=': // ENTER
+    if(entering) {
+      enter();
+    }
+    else { // 確定済みのときは DUP
+      a = pop();
+      push(a);
+      push(a);  
+    }
+    break;
+  case '+':
+    enter();
+    a = pop();
+    stack[0] = fAdd(stack[0], a);
+    break;
+  case '-':
+    enter();
+    a = pop();
+    stack[0] = fSub(stack[0], a);
+    break;
+  case '*':
+    enter();
+    a = pop();
+    stack[0] = fMul(stack[0], a);
+    break;
+  case '/':
+    enter();
+    a = pop();
+    stack[0] = fDiv(stack[0], a);
+    break;
+  case 'C':
+    enter();
+    stack[0] = fSign(stack[0]);
+    break;
+  case 'S': // 平方根（未実装）
+//    stack[0] = sqrt(stack[0]);
+    enter();
+    break;
+  case 'm': // 小数表示モード
+    fracmode = false;
+    break;
+  case 'M': // 分数表示モード
+    fracmode = true;
+    break;
+  case '%': // SWAP
+    enter();
+    a = stack[0];
+    stack[0] = stack[1];
+    stack[1] = a;
+    break;
+  }
+  disp();
+  waitRelease();
+  delay(100);
+}
