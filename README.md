@@ -9,6 +9,8 @@
   
 同様の計算方法によるウェブアプリ版（JavaScript実装）は、[こちら](https://shiura.com/html5/index.html)にあります。
 
+[![レトロ電卓の再生：誤差ゼロ、アンドゥ機能付きRPN電卓](https://github.com/user-attachments/assets/fe4507ce-e2fb-4d1b-8999-07eaf46a6cf3)](https://www.youtube.com/watch?v=NmWKcKjnXug)
+
 ### 解説・特徴
 
 - 普通の電卓に備わるキーで過不足なくRPN（逆ポーランド法）の操作ができます
