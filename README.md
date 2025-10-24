@@ -25,10 +25,11 @@
   * 下層の電源基板は全部取り外します（使用しません）。
 - RP2040-zero
   * WaveShare の純正品、もしくは互換品を使用します。
+  * 互換品なら中国通販で１個200円以下、[国内発送でも350円程度](https://shop.talpkeyboard.com/products/rp2040-zero-usb-c-compatible)で売られています。
   * 幅が CM-602 オリジナルCPUと同じため、その部分に差し込んで使います。
   * スペースの都合で裏側に装着しますので、ピンソケットを上面に取り付けます。
 - ディスプレイ
-  * [AQM1602Y-NLW-FBW](https://akizukidenshi.com/catalog/g/g112486/) を使用しました（カシオミニの表示窓にピッタリの大きさです）。
+  * [AQM1602Y-NLW-FBW](https://akizukidenshi.com/catalog/g/g112486/) を使用しました（カシオミニの表示窓にピッタリの大きさです）。2025/10現在、645円です。
   * 回路は[こちら](https://qiita.com/aknm21/items/e67ecc6aa5c9a8cc312d)を参考にしました。ただしLEDを明るくするため、抵抗は100Ωにしています。
   * バックライトや制御LSI ST7032 に印加する電圧は 5V です。
   * I2C 接続の SDA, SCL はレベルシフタを用いずに RP2040 に直結しています。
