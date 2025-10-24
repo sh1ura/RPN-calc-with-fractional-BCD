@@ -53,6 +53,7 @@
 ### 部品取り付け後の様子
 ![finish1](https://github.com/user-attachments/assets/3a3e6790-fca0-40a1-ab3a-11a9e2491152)
 ![finish2](https://github.com/user-attachments/assets/3a00cddd-c2d3-47a5-b350-993e6ce1b968)
+- 表示部を筐体の表示窓直下に配置するため、プリント基板の不要な部分をカットしてスペースを空けています。
 
 ## コードについて
 - 整数演算部では負の値は扱いません。
