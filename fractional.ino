@@ -481,7 +481,9 @@ String dispE(String s, int limit) {
     return s;
   }
   limit -= 2; // "En" のスペース
-  if((int)s.length() - 9 > limit) // ...E10 みたいに２桁になる
+  if((int)s.length() - 98 > limit) // ...E100 みたいに3桁になる
+    limit -= 2;
+  else if((int)s.length() - 8 > limit) // ...E10 みたいに２桁になる
     limit--;
   s = s.substring(0, limit) + "e" + String((int)s.length() - limit);
 #if DEBUG
@@ -597,6 +599,8 @@ String FRAC2dstr(struct FRAC a) {
     else {
         s = s.substring(0, limit - 4); // "E-yy" の文字数を確保する
     }
+    if(ptPos - 1 > 99 || ptPos - 1 < -99) // Eyyy または e-yyy
+      s = s.substring(0, s.length() - 1);
     s += "e" + String(ptPos - 1);
   }
   else if(ptPos == limit) { // ちょうど小数点がない場合
@@ -611,6 +615,9 @@ String FRAC2dstr(struct FRAC a) {
     s = s.substring(0, limit);
   }
   if(a.sign < 0) s = "-" + s; // 負号をつける
+#if DEBUG
+  Serial.println("FRAC2dstr length = " + String(s.length()) + " : " + s);
+#endif
   return s;
 }
 
