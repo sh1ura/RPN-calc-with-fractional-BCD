@@ -9,7 +9,7 @@
 
 制作過程は、以下でも解説しています。参考にしてください。
 
-* Webページ [https://shiura.com/dfab/casiomini/index.html](https://shiura.com/dfab/casiomini/index.html) や
+* Webページ [https://shiura.com/dfab/casiomini/index.html](https://shiura.com/dfab/casiomini/index.html)
 * Instructables [https://www.instructables.com/A-Modern-Calculator-and-Clock-From-a-Broken-50-Yea/](https://www.instructables.com/A-Modern-Calculator-and-Clock-From-a-Broken-50-Yea/)
 
 同様の計算方法によるウェブアプリ版（JavaScript実装）は、[こちら](https://shiura.com/html5/index.html)にあります。
