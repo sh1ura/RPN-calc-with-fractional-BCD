@@ -6,7 +6,12 @@
 - 深いスタックとアンドゥバッファにより、複雑な計算や、そのやり直しが可能
 - 単純さ，簡単さを優先したコード（そのかわり遅い）
 - 外部ライブラリ不要（表示デバイスの制御除く）
-  
+
+制作過程は、以下でも解説しています。参考にしてください。
+
+* Webページ [https://shiura.com/dfab/casiomini/index.html](https://shiura.com/dfab/casiomini/index.html) や
+* Instructables [https://www.instructables.com/A-Modern-Calculator-and-Clock-From-a-Broken-50-Yea/](https://www.instructables.com/A-Modern-Calculator-and-Clock-From-a-Broken-50-Yea/)
+
 同様の計算方法によるウェブアプリ版（JavaScript実装）は、[こちら](https://shiura.com/html5/index.html)にあります。
 
 [![レトロ電卓の再生：誤差ゼロ、アンドゥ機能付きRPN電卓](https://github.com/user-attachments/assets/fe4507ce-e2fb-4d1b-8999-07eaf46a6cf3)](https://www.youtube.com/watch?v=NmWKcKjnXug)
